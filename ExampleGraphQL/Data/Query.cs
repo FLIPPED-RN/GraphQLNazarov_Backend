@@ -15,6 +15,22 @@ namespace ExampleGraphQL.Data
             DateTime endDate) =>
             sessionRepository.GetSessionsByDate(startDate, endDate);
 
+        //получение фильмов all
+        public IQueryable<Movie> GetAllMovies([Service] CinemaDbContext context)
+        {
+            return context.Movies;
+        }
+
+        public IQueryable<Ticket> GetAllTickets([Service] CinemaDbContext context)
+        {
+            return context.Tickets;
+        }
+
+        public IQueryable<Hall> GetAllHalls([Service] CinemaDbContext context)
+        {
+            return context.Halls;
+        }
+
         // Сформировать список свободных мест на заданный киносеанс
         public IQueryable<Ticket> GetAvailableTickets(
             [Service] ISessionRepository sessionRepository,
