@@ -7,50 +7,133 @@ namespace ExampleGraphQL.Data
 {
     public class Mutation
     {
-        //[Serial]
-        //public async Task<Post?> UpdatePost([Service]
-        //BlogDbContext context,Post model)
-        //{
-        //    var post = await context.Posts.Where(p => p.Id == model.Id).FirstOrDefaultAsync();
-        //    if (post != null)
-        //    {
-        //        if (!string.IsNullOrEmpty(model.Title))
-        //            post.Title = model.Title;
-        //        if (!string.IsNullOrEmpty(model.Content))
-        //            post.Content = model.Content;
-        //        if (!string.IsNullOrEmpty(model.Author))
-        //            post.Author = model.Author;
-        //        post.CreateAt = DateTime.Now;
-        //        context.Posts.Update(post);
-        //        await context.SaveChangesAsync();
-        //    }
-        //    return post;
-        //}
-        //[Serial]
-        //public async Task DeletePost(
-        //    [Service]
-        //BlogDbContext context, Guid id)
-        //{
-        //    var post = await context.Posts.Where(p => p.Id ==id).FirstOrDefaultAsync();
-        //    if (post != null)
-        //    {
-        //        context.Posts.Remove(post);
-        //        await context.SaveChangesAsync();
-        //    }
-        //}
-        [Serial]
-        public async Task<Post?> InsertPost(
-           [Service]IPostRepository postRepository,string author,
-           string content,string title)
+
+        public async Task<Ticket> BuyTicket([Service] CinemaDbContext context, Guid sessionId, int seatNumber, decimal price)
         {
-            Post newPost = new Post
+            var ticket = new Ticket
             {
-                Author=author,
-                Content=content,
-                Title=title
+                SessionId = sessionId,
+                SeatNumber = seatNumber,
+                Price = price,
+                IsSold = true
             };
-            var createdPost = await postRepository.AddPost(newPost);
-            return createdPost;
+            context.Tickets.Add(ticket);
+            await context.SaveChangesAsync();
+            return ticket;
+        }
+
+
+        public async Task<Movie> AddMovie([Service] CinemaDbContext context, string title, string description, int duration)
+        {
+            var movie = new Movie
+            {
+                Title = title,
+                Description = description,
+                Duration = duration
+            };
+            context.Movies.Add(movie);
+            await context.SaveChangesAsync();
+            return movie;
+        }
+
+
+        public async Task<Hall> AddHall([Service] CinemaDbContext context, string name, int capacity)
+        {
+            var hall = new Hall
+            {
+                Name = name,
+                Capacity = capacity
+            };
+            context.Halls.Add(hall);
+            await context.SaveChangesAsync();
+            return hall;
+        }
+
+
+        public async Task<Session> AddSession([Service] CinemaDbContext context, DateTime startTime, Guid movieId, Guid hallId)
+        {
+            var session = new Session
+            {
+                StartTime = startTime,
+                MovieId = movieId,
+                HallId = hallId
+            };
+            context.Sessions.Add(session);
+            await context.SaveChangesAsync();
+            return session;
+        }
+
+        public async Task<Movie> DeleteMovie([Service] CinemaDbContext context, Guid id)
+        {
+            var movie = await context.Movies.FindAsync(id);
+            if (movie == null)
+            {
+                throw new GraphQLException("Movie not found.");
+            }
+
+            context.Movies.Remove(movie);
+            await context.SaveChangesAsync();
+            return movie;
+        }
+
+        public async Task<Hall> DeleteHall([Service] CinemaDbContext context, Guid id)
+        {
+            var hall = await context.Halls.FindAsync(id);
+            if (hall == null)
+            {
+                throw new GraphQLException("Hall not found.");
+            }
+
+            context.Halls.Remove(hall);
+            await context.SaveChangesAsync();
+            return hall;
+        }
+
+
+        public async Task<Session> DeleteSession([Service] CinemaDbContext context, Guid id)
+        {
+            var session = await context.Sessions.FindAsync(id);
+            if (session == null)
+            {
+                throw new GraphQLException("Session not found.");
+            }
+
+            context.Sessions.Remove(session);
+            await context.SaveChangesAsync();
+            return session;
+        }
+
+        public async Task<Ticket> DeleteTicket([Service] CinemaDbContext context, Guid id)
+        {
+            var ticket = await context.Tickets.FindAsync(id);
+            if (ticket == null)
+            {
+                throw new GraphQLException("Ticket not found.");
+            }
+
+            context.Tickets.Remove(ticket);
+            await context.SaveChangesAsync();
+            return ticket;
+        }
+
+        public IQueryable<Movie> GetAllMovies([Service] CinemaDbContext context)
+        {
+            return context.Movies;
+        }
+
+        public IQueryable<Hall> GetAllHalls([Service] CinemaDbContext context)
+        {
+            return context.Halls;
+        }
+
+        public IQueryable<Session> GetAllSessions([Service] CinemaDbContext context)
+        {
+            return context.Sessions.Include(s => s.Movie).Include(s => s.Hall);
+        }
+
+        public IQueryable<Ticket> GetAllTickets([Service] CinemaDbContext context)
+        {
+            return context.Tickets.Include(t => t.Session);
         }
     }
 }
